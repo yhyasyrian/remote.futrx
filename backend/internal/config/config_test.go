@@ -76,3 +76,19 @@ func TestPublicHostnameUsesInstalledDomain(t *testing.T) {
 		t.Fatalf("PublicHostname = %q, want remote.example.com", got)
 	}
 }
+
+func TestLoadUsesApplicationDownloadIdleTimeoutEnv(t *testing.T) {
+	if got := Load().Applications.DownloadIdleTimeout; got != 30*time.Second {
+		t.Fatalf("default = %s, want 30s", got)
+	}
+	t.Setenv("APPLICATION_DOWNLOAD_IDLE_TIMEOUT", "2m")
+	if got := Load().Applications.DownloadIdleTimeout; got != 2*time.Minute {
+		t.Fatalf("override = %s, want 2m", got)
+	}
+	for _, bad := range []string{"invalid", "0", "-5s"} {
+		t.Setenv("APPLICATION_DOWNLOAD_IDLE_TIMEOUT", bad)
+		if got := Load().Applications.DownloadIdleTimeout; got != 30*time.Second {
+			t.Fatalf("%q fallback = %s, want 30s", bad, got)
+		}
+	}
+}

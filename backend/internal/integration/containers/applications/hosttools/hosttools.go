@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -76,17 +77,39 @@ type Installer struct {
 	fetch  func(context.Context, string) (io.ReadCloser, error)
 	verify func(context.Context, string, []string) error
 	arch   string
+	// idle is how long a download may go without receiving data.
+	idle time.Duration
+}
+
+// Option customizes an Installer.
+type Option func(*Installer)
+
+// WithDownloadIdleTimeout sets how long a download may stall before it is
+// abandoned. Non-positive values keep the default.
+func WithDownloadIdleTimeout(idle time.Duration) Option {
+	return func(in *Installer) {
+		if idle > 0 {
+			in.idle = idle
+		}
+	}
 }
 
 // New returns an Installer writing beneath dataDir.
-func New(dataDir string) *Installer {
-	return &Installer{
+func New(dataDir string, opts ...Option) *Installer {
+	in := &Installer{
 		dataDir:  dataDir,
 		installs: map[string]*sync.Mutex{},
-		fetch:    fetchHTTPS,
 		verify:   runVersion,
 		arch:     runtime.GOARCH,
+		idle:     downloadIdleTimeout,
 	}
+	for _, opt := range opts {
+		opt(in)
+	}
+	in.fetch = func(ctx context.Context, rawURL string) (io.ReadCloser, error) {
+		return fetchDownload(ctx, http.DefaultClient, rawURL, in.idle)
+	}
+	return in
 }
 
 // lockTool acquires the lock for one tool and returns its release function.

@@ -1,9 +1,12 @@
 package config
 
 import (
+	"time"
+
 	"github.com/futrx-com/remote.futrx.com/internal/agent/provisioning"
 	configconstants "github.com/futrx-com/remote.futrx.com/internal/config/constants"
 	containerapplications "github.com/futrx-com/remote.futrx.com/internal/integration/containers/applications"
+	"github.com/futrx-com/remote.futrx.com/internal/integration/containers/applications/hosttools"
 	"github.com/futrx-com/remote.futrx.com/internal/integration/containers/assets"
 	containerbaseimage "github.com/futrx-com/remote.futrx.com/internal/integration/containers/baseimage"
 	containerbrowser "github.com/futrx-com/remote.futrx.com/internal/integration/containers/browser"
@@ -64,6 +67,9 @@ type ContainerStackOptions struct {
 	// executable has it installed beneath this directory, never into the host's
 	// own package set.
 	DataDir string
+	// DownloadIdleTimeout bounds how long an application host-tool download may
+	// stall. Zero keeps the integration default.
+	DownloadIdleTimeout time.Duration
 }
 
 // ProjectDependencies exposes only the capabilities consumed by project
@@ -158,7 +164,8 @@ func NewContainerStack(
 	var appInstaller *containerapplications.Installer
 	var appPorts *containerapplications.HostPortAllocator
 	if options.AppRegistry != nil {
-		appInstaller = containerapplications.NewInstaller(runner, options.AppRegistry, options.DataDir)
+		appInstaller = containerapplications.NewInstaller(runner, options.AppRegistry, options.DataDir,
+			hosttools.WithDownloadIdleTimeout(options.DownloadIdleTimeout))
 		appPorts = containerapplications.NewHostPortAllocator()
 	}
 

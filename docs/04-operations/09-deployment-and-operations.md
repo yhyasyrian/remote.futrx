@@ -398,6 +398,7 @@ fallback commands it runs:
 | Environment variable | Default | Meaning |
 | --- | ---: | --- |
 | `AGENT_CAPABILITY_TIMEOUT` | `30s` | Maximum duration of one provider capability probe; Go duration syntax; `0` disables the deadline |
+| `APPLICATION_DOWNLOAD_IDLE_TIMEOUT` | `30s` | How long an application host-tool download may receive no data before it is abandoned; resets as data arrives, so large downloads are unaffected; Go duration syntax; `0` or invalid values use the default |
 
 Set it with a systemd override when slower provider CLIs need more time:
 

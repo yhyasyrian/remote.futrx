@@ -11,13 +11,10 @@ import (
 	svc "github.com/futrx-com/remote.futrx.com/internal/service/applications"
 )
 
+// downloadIdleTimeout is the default idle deadline. The deadline covers headers and resets
+// when body bytes arrive. Unlike a total transfer deadline, it allows a large
+// download that is making progress.
 const downloadIdleTimeout = 30 * time.Second
-
-// The deadline covers headers and resets when body bytes arrive. Unlike a
-// total transfer deadline, it allows a large download that is making progress.
-func fetchHTTPS(ctx context.Context, rawURL string) (io.ReadCloser, error) {
-	return fetchDownload(ctx, http.DefaultClient, rawURL, downloadIdleTimeout)
-}
 
 func fetchDownload(parent context.Context, client *http.Client, rawURL string, idle time.Duration) (io.ReadCloser, error) {
 	ctx, cancel := context.WithCancelCause(parent)

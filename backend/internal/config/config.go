@@ -23,6 +23,10 @@ type Config struct {
 // owns the optional environment override supplied to it.
 type ApplicationOptions struct {
 	GoTool string
+	// DownloadIdleTimeout is how long an application host-tool download may
+	// receive no data before it is abandoned (APPLICATION_DOWNLOAD_IDLE_TIMEOUT,
+	// Go duration, default 30s). Zero or invalid values use the default.
+	DownloadIdleTimeout time.Duration
 }
 
 // AgentOptions are application-wide policies for the agent subsystem.
@@ -88,7 +92,8 @@ func Load() Config {
 			SetupTokenTTL:       envDuration("SETUP_TOKEN_TTL", 30*time.Minute),
 		},
 		Applications: ApplicationOptions{
-			GoTool: envDefault("REMOTE_APPLICATION_GO", ""),
+			GoTool:              envDefault("REMOTE_APPLICATION_GO", ""),
+			DownloadIdleTimeout: envPositiveDuration("APPLICATION_DOWNLOAD_IDLE_TIMEOUT", 30*time.Second),
 		},
 	}
 }
@@ -133,4 +138,13 @@ func envDuration(key string, def time.Duration) time.Duration {
 		return def
 	}
 	return parsed
+}
+
+// envPositiveDuration is envDuration for limits that cannot be disabled: zero
+// falls back to the default.
+func envPositiveDuration(key string, def time.Duration) time.Duration {
+	if v := envDuration(key, def); v > 0 {
+		return v
+	}
+	return def
 }

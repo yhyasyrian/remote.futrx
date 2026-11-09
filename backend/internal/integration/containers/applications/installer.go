@@ -57,8 +57,8 @@ type hostToolEnsurer interface {
 	Ensure(context.Context, []svc.HostTool) error
 }
 
-func NewInstaller(runner command.Runner, registry *Registry, dataDir string) *Installer {
-	return &Installer{runner: runner, registry: registry, hostTools: hosttools.New(dataDir), publisher: assets.NewPublisher(runner)}
+func NewInstaller(runner command.Runner, registry *Registry, dataDir string, hostToolOptions ...hosttools.Option) *Installer {
+	return &Installer{runner: runner, registry: registry, hostTools: hosttools.New(dataDir, hostToolOptions...), publisher: assets.NewPublisher(runner)}
 }
 
 var _ svc.Installer = (*Installer)(nil)

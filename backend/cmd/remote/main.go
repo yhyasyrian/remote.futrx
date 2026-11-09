@@ -114,9 +114,10 @@ func main() {
 		lxc.New(),
 		agentModules.Profiles(),
 		config.ContainerStackOptions{
-			AgentInstructions: provisioning.InstructionsTemplate(publicHostname),
-			AppRegistry:       appRegistry,
-			DataDir:           cfg.DataDir,
+			AgentInstructions:   provisioning.InstructionsTemplate(publicHostname),
+			AppRegistry:         appRegistry,
+			DataDir:             cfg.DataDir,
+			DownloadIdleTimeout: cfg.Applications.DownloadIdleTimeout,
 		},
 	)
 
